@@ -18,7 +18,7 @@ struct ContentView: View {
             OnboardingView()
                 .transition(.opacity)
         } else if revenueCat.isPro {
-            DashboardView()
+            MainTabView()
                 .transition(.opacity)
         } else {
             PaywallView()

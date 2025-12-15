@@ -183,12 +183,23 @@ private class CameraService {
     // This prevents race conditions with the Torch when quickly entering/exiting the view.
     private static let sessionQueue = DispatchQueue(label: "com.bloodpressure.cameraSessionQueue")
     
-    init() {}
+    static let shared = CameraService()
+    
+    private var isConfigured = false
+    
+    private init() {}
     
     func configure(with delegate: AVCaptureVideoDataOutputSampleBufferDelegate) {
         Self.sessionQueue.async { [weak self] in
             guard let self = self else { return }
-            self.session.beginConfiguration()
+            // Smart Reconfiguration: If already configured, just update the delegate to the new FrameProcessor
+            if self.isConfigured {
+                let videoQueue = DispatchQueue(label: "com.bloodpressure.videoQueue")
+                self.output.setSampleBufferDelegate(delegate, queue: videoQueue)
+                self.session.commitConfiguration()
+                return
+            }
+            
             self.session.sessionPreset = .high // Use high for better sensor readout
             
             // 1. Find Back Camera
@@ -239,6 +250,7 @@ private class CameraService {
                 self.session.addOutput(self.output)
             }
             
+            self.isConfigured = true
             self.session.commitConfiguration()
         }
     }
@@ -288,7 +300,7 @@ class HeartRateManager: NSObject, ObservableObject {
     @Published var permissionGranted = false
     @Published var isDetectingFinger = false
     
-    private let cameraService = CameraService()
+    private let cameraService = CameraService.shared
     private let frameProcessor = FrameProcessor()
     
     var previewSession: AVCaptureSession {

@@ -23,11 +23,10 @@ struct DashboardView: View {
                 VStack(spacing: 0) {
                     // Header
                     HStack {
-                        Button(action: { showSettings = true }) {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(.slate.opacity(0.7))
-                        }
+                        // Empty space or just remove the button
+                        // Button removed as Settings is now in TabBar
+                        
+                        Spacer() // Alignment spacer
                         
                         Spacer()
                         
