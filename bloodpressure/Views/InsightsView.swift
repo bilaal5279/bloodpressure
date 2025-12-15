@@ -18,6 +18,7 @@ struct InsightsView: View {
     @State private var customEndDate = Date()
     @State private var selectedBPDate: Date? // Independent state for BP chart
     @State private var selectedHRDate: Date? // Independent state for HR chart
+    @State private var showAddLog = false
     
     // MARK: - Computed Data
     var filteredLogs: [BPLog] {
@@ -84,7 +85,9 @@ struct InsightsView: View {
                         }
                         
                         if filteredLogs.isEmpty {
-                            EmptyStateView()
+                            EmptyStateView {
+                                showAddLog = true
+                            }
                         } else {
                             // Summary Cards
                             HStack(spacing: 16) {
@@ -121,6 +124,9 @@ struct InsightsView: View {
             .navigationTitle("Insights")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.offWhite, for: .navigationBar)
+            .sheet(isPresented: $showAddLog) {
+                AddLogView(isPresented: $showAddLog)
+            }
         }
     }
 }
@@ -171,23 +177,56 @@ struct SummaryCard: View {
 }
 
 struct EmptyStateView: View {
+    var action: (() -> Void)? = nil
+    
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Spacer()
-            Image(systemName: "chart.bar.xaxis")
-                .font(.system(size: 80))
-                .foregroundColor(.gray.opacity(0.2))
-            Text("No Data for this Period")
-                .font(.headline)
-                .foregroundColor(.slate)
-            Text("Try selecting a different range or add new logs.")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            
+            ZStack {
+                Circle()
+                    .fill(Color.softRed.opacity(0.1))
+                    .frame(width: 140, height: 140)
+                    .blur(radius: 20)
+                
+                Image(systemName: "chart.xyaxis.line")
+                    .font(.system(size: 60))
+                    .foregroundColor(.softRed)
+            }
+            
+            VStack(spacing: 12) {
+                Text("No Data Yet")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.slate)
+                
+                Text("Start tracking your blood pressure to see colorful insights and trends here.")
+                    .font(.body)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
+            
+            if let action = action {
+                Button(action: action) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add First Log")
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+                    .background(Color.softRed)
+                    .cornerRadius(30)
+                    .shadow(color: Color.softRed.opacity(0.4), radius: 10, x: 0, y: 5)
+                }
+                .padding(.top, 8)
+            }
+            
             Spacer()
         }
-        .frame(height: 300)
+        .frame(minHeight: 400)
     }
 }
 
@@ -329,7 +368,8 @@ struct BPChartContent: View {
     }
     
     func findClosestLog(to date: Date, logs: [BPLog]) -> BPLog? {
-        logs.min(by: { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) })
+        let validLogs = logs.filter { ($0.systolic ?? 0) > 0 }
+        return validLogs.min(by: { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) })
     }
 }
 
@@ -390,7 +430,8 @@ struct HRChartContent: View {
     }
     
     func findClosestLog(to date: Date, logs: [BPLog]) -> BPLog? {
-        logs.min(by: { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) })
+        let validLogs = logs.filter { ($0.heartRate ?? 0) > 0 }
+        return validLogs.min(by: { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) })
     }
 }
 

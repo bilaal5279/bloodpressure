@@ -3,17 +3,11 @@ import SwiftData
 
 struct DashboardView: View {
     @Environment(\.modelContext) var modelContext
-    @Query(sort: \BPLog.date, order: .reverse) var allLogs: [BPLog]
-    
     @State private var selectedDate: Date = Date()
     @State private var showSettings: Bool = false
     @State private var showDatePicker: Bool = false
     @State private var showLogSelection: Bool = false
-    
-    // Filtered Logs matching selected date
-    var filteredLogs: [BPLog] {
-        allLogs.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
-    }
+    @State private var showHeartRate: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -23,11 +17,7 @@ struct DashboardView: View {
                 VStack(spacing: 0) {
                     // Header
                     HStack {
-                        // Empty space or just remove the button
-                        // Button removed as Settings is now in TabBar
-                        
-                        Spacer() // Alignment spacer
-                        
+                        Spacer()
                         Spacer()
                         
                         VStack(spacing: 4) {
@@ -68,39 +58,11 @@ struct DashboardView: View {
                     HorizontalCalendarView(selectedDate: $selectedDate)
                         .padding(.bottom, 16)
                     
-                    // List
-                    if filteredLogs.isEmpty {
-                        VStack(spacing: 16) {
-                            Spacer()
-                            Image(systemName: "heart.text.square")
-                                .font(.system(size: 64))
-                                .foregroundColor(.gray.opacity(0.3))
-                            Text("No logs for today.\nKeep tracking!")
-                                .font(.system(.body, design: .rounded))
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.gray)
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity)
-                    } else {
-                        ScrollView {
-                            LazyVStack(spacing: 12) {
-                                ForEach(filteredLogs) { log in
-                                    BPCardView(log: log)
-                                        .padding(.horizontal)
-                                        .contextMenu {
-                                            Button(role: .destructive) {
-                                                deleteLog(log)
-                                            } label: {
-                                                Label("Delete", systemImage: "trash")
-                                            }
-                                        }
-                                }
-                            }
-                            .padding(.top, 8)
-                            .padding(.bottom, 20)
-                        }
-                    }
+                    // Optimized Content Subview
+                    DailyDashContent(
+                        date: selectedDate,
+                        showLogSelection: $showLogSelection
+                    )
                 }
             }
             .sheet(isPresented: $showSettings) {
@@ -126,13 +88,131 @@ struct DashboardView: View {
                     LogSelectionView(isPresented: $showLogSelection)
                 }
             }
-            // Removed other sheets as they are now part of navigation stack flow or sub-views
+            .fullScreenCover(isPresented: $showHeartRate) {
+                HeartRateMeasurementView(isPresented: $showHeartRate)
+            }
+        }
+    }
+}
+
+// MARK: - Daily Content Subview (Optimized Query)
+struct DailyDashContent: View {
+    @Environment(\.modelContext) var modelContext
+    @Query var logs: [BPLog]
+    @Binding var showLogSelection: Bool
+    
+    init(date: Date, showLogSelection: Binding<Bool>) {
+        self._showLogSelection = showLogSelection
+        
+        let start = Calendar.current.startOfDay(for: date)
+        let end = Calendar.current.endOfDay(for: date)
+        
+        let predicate = #Predicate<BPLog> { log in
+            log.date >= start && log.date <= end
+        }
+        
+        self._logs = Query(filter: predicate, sort: \.date, order: .reverse)
+    }
+    
+    var hasBPForDay: Bool {
+        logs.contains { ($0.systolic ?? 0) > 0 }
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                // Smart Prompts
+                if !hasBPForDay {
+                    PromptCard(
+                        title: "Record Blood Pressure",
+                        subtitle: "No reading logged for today.",
+                        icon: "heart.text.square.fill",
+                        color: .softTeal,
+                        action: { showLogSelection = true }
+                    )
+                    .padding(.horizontal)
+                }
+                
+                // List
+                if logs.isEmpty {
+                    VStack(spacing: 16) {
+                        Spacer().frame(height: 40)
+                        Image(systemName: "chart.bar.doc.horizontal")
+                            .font(.system(size: 64))
+                            .foregroundColor(.gray.opacity(0.3))
+                        Text("No logs yet.\nTap a card above to start tracking!")
+                            .font(.system(.body, design: .rounded))
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.top, 40)
+                } else {
+                    LazyVStack(spacing: 12) {
+                        ForEach(logs) { log in
+                            BPCardView(log: log)
+                                .padding(.horizontal)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        deleteLog(log)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                        }
+                    }
+                }
+            }
+            .padding(.bottom, 20)
         }
     }
     
     func deleteLog(_ log: BPLog) {
         withAnimation {
             modelContext.delete(log)
+        }
+    }
+}
+
+// MARK: - Prompt Card Component
+struct PromptCard: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.1))
+                        .frame(width: 48, height: 48)
+                    
+                    Image(systemName: icon)
+                        .font(.title3)
+                        .foregroundColor(color)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundColor(.slate)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "plus.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(color)
+            }
+            .padding()
+            .background(Color.pureWhite)
+            .cornerRadius(16)
+            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         }
     }
 }

@@ -11,6 +11,8 @@ struct AddLogView: View {
     
     @State private var systolic: Int = 120
     @State private var diastolic: Int = 80
+    @State private var pulse: Int = 75
+    @State private var includePulse: Bool = false
     @State private var date: Date = Date()
     
     var body: some View {
@@ -80,6 +82,21 @@ struct AddLogView: View {
                             VStack(spacing: 24) {
                                 RulerPicker(range: 70...250, value: $systolic, label: "Systolic")
                                 RulerPicker(range: 40...150, value: $diastolic, label: "Diastolic")
+                                
+                                Divider()
+                                
+                                Toggle(isOn: $includePulse.animation()) {
+                                    Text("Record Heart Rate (Optional)")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.slate)
+                                }
+                                .tint(.softRed)
+                                
+                                if includePulse {
+                                    RulerPicker(range: 40...200, value: $pulse, label: "Pulse (BPM)")
+                                        .transition(.opacity.combined(with: .move(edge: .top)))
+                                }
                             }
                             .padding()
                             .background(Color.pureWhite)
@@ -144,8 +161,13 @@ struct AddLogView: View {
     
     // Save Action
     func saveLog() {
-        // Only saving BP here
-        let newLog = BPLog(systolic: systolic, diastolic: diastolic, date: date)
+        // Saving BP with optional Pulse
+        let newLog = BPLog(
+            systolic: systolic,
+            diastolic: diastolic,
+            heartRate: includePulse ? pulse : nil,
+            date: date
+        )
         modelContext.insert(newLog)
         
         // Optional: Simple success haptic

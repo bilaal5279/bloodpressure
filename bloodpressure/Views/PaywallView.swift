@@ -8,106 +8,112 @@ struct PaywallView: View {
     
     var body: some View {
         ZStack {
-            Color.offWhite.ignoresSafeArea()
+            // Premium Gradient Background
+            LinearGradient(
+                colors: [Color.softRed.opacity(0.15), Color.white],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // ... content ...
-                // Header Image
-                ZStack {
-                    Color.softRed.opacity(0.1)
-                    Image(systemName: "heart.fill") // Placeholder for 3D render
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 120, height: 120)
-                        .foregroundColor(.softRed)
-                        .shadow(color: Color.softRed.opacity(0.5), radius: 20, x: 0, y: 10)
-                }
-                .frame(height: 250)
-                .mask(RoundedRectangle(cornerRadius: 32, style: .continuous)
-                        .padding(.bottom, -32)) // Curved bottom effect
-                
-                VStack(spacing: 24) {
-                    Text("Unlock Your\nHeart Health")
-                        .font(.system(.largeTitle, design: .rounded))
-                        .fontWeight(.black)
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.slate)
-                        .padding(.top, 32)
-                    
-                    VStack(alignment: .leading, spacing: 16) {
-                        FeatureRow(text: "Unlimited History & Cloud Backup")
-                        FeatureRow(text: "Smart Trend Analysis")
-                        FeatureRow(text: "Export for your Doctor (PDF)")
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header Image
+                        ZStack {
+                            Circle()
+                                .fill(Color.softRed.opacity(0.1))
+                                .frame(width: 180, height: 180)
+                                .blur(radius: 20)
+                            
+                            Image(systemName: "heart.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 100, height: 100)
+                                .foregroundColor(.softRed)
+                                .shadow(color: Color.softRed.opacity(0.5), radius: 20, x: 0, y: 10)
+                        }
+                        .padding(.top, 40)
+                        
+                        // Title
+                        Text("Unlock Your\nHeart Health")
+                            .font(.system(.largeTitle, design: .rounded))
+                            .fontWeight(.black)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.slate)
+                            .padding(.top, 24)
+                            .padding(.horizontal)
+                        
+                        // Features List
+                        VStack(alignment: .leading, spacing: 20) {
+                        FeatureRow(text: "Blood Pressure & Pulse Logging")
+                            FeatureRow(text: "Unlimited History & Cloud Backup")
+                            FeatureRow(text: "Smart Trend Analysis & Charts")
+                            FeatureRow(text: "Export PDF Reports for Doctor")
+                            FeatureRow(text: "No Ads & Distractions")
+                        }
+                        .padding(.vertical, 32)
+                        .padding(.horizontal, 40)
                     }
-                    .padding(.horizontal)
-                    
-                    Spacer()
-                    
-                    // Pricing
-                    VStack(spacing: 12) {
-                        Button(action: {
-                            revenueCat.purchase { success in
-                                if success {
-                                    withAnimation {
-                                        showConfetti = true
-                                    }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                        dismiss()
-                                    }
+                }
+                
+                // Bottom Section: Pricing & Action
+                VStack(spacing: 24) {
+                    Button(action: {
+                        revenueCat.purchase { success in
+                            if success {
+                                withAnimation {
+                                    showConfetti = true
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    dismiss() // Note: Dismiss relies on usage context
                                 }
                             }
-                        }) {
-                            VStack(spacing: 4) {
-                                Text("Start 3-Day Free Trial")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                Text("Then $6.99/week")
-                                    .font(.caption)
-                                    .opacity(0.8)
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(Color.softRed)
-                            .cornerRadius(16)
-                            .shadow(color: Color.softRed.opacity(0.4), radius: 10, x: 0, y: 5)
-                            .scaleEffect(isPulsing ? 1.05 : 1.0)
-                            .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
-                            .onAppear {
-                                isPulsing = true
-                            }
                         }
-                        
-                        Button(action: {
-                             // Monthly plan logic
-                        }) {
-                            Text("Continue with Weekly Plan")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(.gray)
+                    }) {
+                        VStack(spacing: 4) {
+                            Text("Start 3-Day Free Trial")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                            Text("Then \(revenueCat.localizedPrice)")
+                                .font(.caption)
+                                .opacity(0.9)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 60)
+                        .background(
+                            LinearGradient(colors: [.softRed, .softRed.opacity(0.9)], startPoint: .top, endPoint: .bottom)
+                        )
+                        .cornerRadius(20)
+                        .shadow(color: Color.softRed.opacity(0.4), radius: 12, x: 0, y: 6)
+                        .scaleEffect(isPulsing ? 1.05 : 1.0)
+                        .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: isPulsing)
+                        .onAppear {
+                            isPulsing = true
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
                     
                     // Footer
                     HStack(spacing: 24) {
                         Button("Restore") {
                             revenueCat.restore { _ in dismiss() }
                         }
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                        
-                        Button("Terms") {}
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        
-                        Button("Privacy") {}
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                        Link("Terms", destination: URL(string: "https://digitalsprout.org/bp/terms-of-service")!)
+                        Link("Privacy", destination: URL(string: "https://digitalsprout.org/bp/privacypolicy")!)
                     }
-                    .padding(.bottom)
+                    .font(.caption)
+                    .foregroundColor(.gray)
                 }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 20)
+                .padding(.top, 20)
+                .background(
+                    Rectangle()
+                        .fill(Color.white.opacity(0.5))
+                        .ignoresSafeArea()
+                        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: -5)
+                )
             }
             
             if showConfetti {

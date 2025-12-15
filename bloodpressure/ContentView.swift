@@ -17,6 +17,14 @@ struct ContentView: View {
         if !hasCompletedOnboarding {
             OnboardingView()
                 .transition(.opacity)
+        } else if revenueCat.isLoading {
+            // Loading State (Optimistic)
+            ZStack {
+                Color.offWhite.ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+            }
+            .transition(.opacity)
         } else if revenueCat.isPro {
             MainTabView()
                 .transition(.opacity)
