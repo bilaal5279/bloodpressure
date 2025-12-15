@@ -179,12 +179,14 @@ private class CameraService {
     private let session = AVCaptureSession()
     private var videoDevice: AVCaptureDevice?
     private let output = AVCaptureVideoDataOutput()
-    private let sessionQueue = DispatchQueue(label: "com.bloodpressure.cameraSessionQueue")
+    // STATIC queue ensures all camera start/stop operations across different instances are serialized.
+    // This prevents race conditions with the Torch when quickly entering/exiting the view.
+    private static let sessionQueue = DispatchQueue(label: "com.bloodpressure.cameraSessionQueue")
     
     init() {}
     
     func configure(with delegate: AVCaptureVideoDataOutputSampleBufferDelegate) {
-        sessionQueue.async { [weak self] in
+        Self.sessionQueue.async { [weak self] in
             guard let self = self else { return }
             self.session.beginConfiguration()
             self.session.sessionPreset = .high // Use high for better sensor readout
@@ -242,7 +244,7 @@ private class CameraService {
     }
     
     func start() {
-        sessionQueue.async { [weak self] in
+        Self.sessionQueue.async { [weak self] in
             guard let self = self, !self.session.isRunning else { return }
             self.session.startRunning()
             self.setTorch(on: true)
@@ -250,7 +252,7 @@ private class CameraService {
     }
     
     func stop() {
-        sessionQueue.async { [weak self] in
+        Self.sessionQueue.async { [weak self] in
             guard let self = self else { return }
             self.setTorch(on: false)
             if self.session.isRunning {

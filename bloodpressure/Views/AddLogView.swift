@@ -1,9 +1,13 @@
 import SwiftUI
 import SwiftData
-
+import StoreKit
+ 
 struct AddLogView: View {
+    @Binding var isPresented: Bool
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
+    @Environment(\.requestReview) var requestReview
+    @AppStorage("hasLoggedFirstTime") private var hasLoggedFirstTime = false
     
     @State private var systolic: Int = 120
     @State private var diastolic: Int = 80
@@ -148,10 +152,17 @@ struct AddLogView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        dismiss()
+        // Rating Logic
+        if !hasLoggedFirstTime {
+            hasLoggedFirstTime = true
+            requestReview()
+        }
+        
+        // Dismiss the entire sheet
+        isPresented = false
     }
 }
 
 #Preview {
-    AddLogView()
+    AddLogView(isPresented: .constant(true))
 }

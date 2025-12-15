@@ -1,11 +1,15 @@
 import SwiftUI
 import SwiftData
 import AVFoundation
+import StoreKit
 
 struct HeartRateMeasurementView: View {
+    @Binding var isPresented: Bool
     @StateObject private var hrManager = HeartRateManager()
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
+    @Environment(\.requestReview) var requestReview
+    @AppStorage("hasLoggedFirstTime") private var hasLoggedFirstTime = false
     
     @State private var showManualEntry = false
     @State private var manualPulse: Double = 72
@@ -47,7 +51,7 @@ struct HeartRateMeasurementView: View {
                         
                         Button(action: {
                             saveManualLog()
-                            dismiss()
+                            // No dismiss needed for manual save as it handles binding
                         }) {
                             Text("Save Manual Entry")
                                 .font(.headline)
@@ -190,7 +194,6 @@ struct HeartRateMeasurementView: View {
                                 // Save Button
                                 Button(action: {
                                     saveLog()
-                                    dismiss()
                                 }) {
                                     Text("Save Result")
                                         .font(.headline)
@@ -236,11 +239,27 @@ struct HeartRateMeasurementView: View {
         // Save heart rate only
         let newLog = BPLog(heartRate: hrManager.heartRate, date: Date())
         modelContext.insert(newLog)
+        
+        // Rating Logic
+        if !hasLoggedFirstTime {
+            hasLoggedFirstTime = true
+            requestReview()
+        }
+        
+        isPresented = false
     }
     
     func saveManualLog() {
         let newLog = BPLog(heartRate: Int(manualPulse), date: Date())
         modelContext.insert(newLog)
+        
+        // Rating Logic (Duplicate logic or shared func)
+        if !hasLoggedFirstTime {
+            hasLoggedFirstTime = true
+            requestReview()
+        }
+        
+        isPresented = false
     }
     func getAdvice(for bpm: Int) -> String {
         if bpm < 60 {
