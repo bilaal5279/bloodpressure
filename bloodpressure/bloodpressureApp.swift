@@ -14,7 +14,9 @@ struct bloodpressureApp: App {
         let schema = Schema([
             BPLog.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        
+        // Explicitly name the store for reliable CloudKit mirroring
+        let modelConfiguration = ModelConfiguration("bloodpressure", schema: schema)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])

@@ -104,6 +104,21 @@ struct AddLogView: View {
                             .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                             .padding(.horizontal)
                             
+                            // Medical Reference
+                            VStack(spacing: 4) {
+                                Text("Scale Sources:")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                                HStack(spacing: 12) {
+                                    Link("BP Readings", destination: MedicalStandards.bpCitationURL)
+                                    Link("Heart Rate", destination: MedicalStandards.hrCitationURL)
+                                }
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                            }
+                            .padding(.top, -8)
+                            
                             Spacer(minLength: 24) // Bottom scroll padding
                         }
                         .padding(.top, 40) // Keep the nice top spacing

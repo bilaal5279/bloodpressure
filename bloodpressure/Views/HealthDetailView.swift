@@ -83,6 +83,8 @@ struct HeaderView: View {
                 .padding(.vertical, 4)
                 .background(Color.pureWhite)
                 .cornerRadius(8)
+            
+            InfoButton(type: .bloodPressure)
         }
         .padding(.top, 8)
     }
@@ -106,6 +108,8 @@ struct PulseHeaderView: View {
                 .padding(.vertical, 4)
                 .background(Color.pureWhite)
                 .cornerRadius(8)
+            
+            InfoButton(type: .heartRate)
         }
         .padding(.top, 8)
     }

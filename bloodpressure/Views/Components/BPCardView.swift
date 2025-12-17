@@ -32,9 +32,10 @@ struct BPCardView: View {
                             .fontWeight(.bold)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(bpColor.opacity(0.1))
                             .foregroundColor(bpColor)
                             .clipShape(Capsule())
+                        
+                        InfoButton(type: .bloodPressure)
                     }
                     
                     HStack(spacing: 40) {
@@ -95,6 +96,8 @@ struct BPCardView: View {
                             .background(hrColor.opacity(0.1))
                             .foregroundColor(hrColor)
                             .clipShape(Capsule())
+                        
+                        InfoButton(type: .heartRate)
                     }
                     
                     HStack(spacing: 40) {

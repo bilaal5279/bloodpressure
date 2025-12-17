@@ -115,6 +115,24 @@ struct InsightsView: View {
                                 HealthBreakdownCard(logs: filteredLogs)
                             }
                             
+                            // Medical Reference
+                            VStack(spacing: 4) {
+                                Text("Categories and ranges are based on guidelines from the:")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.center)
+                                
+                                HStack(spacing: 12) {
+                                    Link("Blood Pressure Readings", destination: MedicalStandards.bpCitationURL)
+                                    Link("Heart Rate (Pulse)", destination: MedicalStandards.hrCitationURL)
+                                }
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                            }
+                            .padding(.top, 8)
+                            .padding(.horizontal)
+                            
                             Spacer().frame(height: 40)
                         }
                     }

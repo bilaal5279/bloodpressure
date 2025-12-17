@@ -105,6 +105,11 @@ struct MedicalStandards {
         GaugeSegment(start: 60, end: 100, color: .softTeal, label: "Normal"),
         GaugeSegment(start: 100, end: 220, color: .softRed, label: "High")
     ]
+    
+    // MARK: - Citations
+    static let citationName = "American Heart Association"
+    static let bpCitationURL = URL(string: "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings")!
+    static let hrCitationURL = URL(string: "https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse")!
 }
 
 // Add new color extension if missing
